@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract SimpleWallet {
     address payable public owner;
     IERC20 public immutable token;
@@ -29,8 +31,6 @@ contract SimpleWallet {
         
         balances[msg.sender] -= _amount;
         balances[_to] += _amount;
-
-        token.transferFrom(msg.sender, _to, _amount);
     }
 
     function withdraw(uint256 _amount) external {
