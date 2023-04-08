@@ -6,15 +6,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract SimpleWallet {
     address payable public owner;
     IERC20 public immutable token;
+    IERC20 public immutable tokenRewards;
     uint256 public totalWalletsFunds;
 
     mapping(address => uint256) public balances;
-    mapping(address => mapping(address => uint256)) private allowances;
 
-    // Token will be Sepolia ETH
-    constructor(address _token) {
+    /* Token will be Sepolia ETH
+       TokenReward will be a custom token */
+    constructor(address _token, address _tokenRewards) {
         owner = payable(msg.sender);
         token = IERC20(_token);
+        tokenRewards = IERC20(_tokenRewards);
     }
 
     function deposit(uint256 _amount) external {
@@ -40,6 +42,10 @@ contract SimpleWallet {
         totalWalletsFunds -= _amount;
 
         token.transferFrom(address(this), msg.sender, _amount);
+    }
+
+    function stacking() external {
+
     }
 
     function getBalance() public view returns (uint256) {
