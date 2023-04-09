@@ -14,7 +14,7 @@ contract SimpleWallet {
 
     mapping(address => uint256) public balances;
     mapping(address => uint256) public stake;
-    mapping(address => uint256) public stakeLock;
+    mapping(address => uint32) public stakeLock;
 
     /* Token will be Sepolia ETH
        TokenReward will be a custom token */
@@ -56,19 +56,31 @@ contract SimpleWallet {
     }
 
     function stacking(uint256 _amount) external {
+        require(stakeLock[msg.sender] < block.timestamp, 'Already staking in progress');
         require(_amount > 0, 'amount = 0');
         require(balances[msg.sender] >= _amount, 'Not enough funds on wallet');
 
         balances[msg.sender] -= _amount;
         stake[msg.sender] += _amount;
-        stakeLock[msg.sender] += block.timestamp + duration;
+        stakeLock[msg.sender] = uint32(block.timestamp) + duration;
         totalStaking += _amount;
-
     }
 
-    function unStaking() external {}
+    function claimRewards() external {
+        require(stakeLock[msg.sender] < block.timestamp, 'Funds are lock');
+        require(msg.sender != address(0), 'Address 0');
 
-    function setDuration(uint32 _duration) external onlyOwner {
+        uint256 _amount = stake[msg.sender];
+
+        balances[msg.sender] += _amount;
+        stake[msg.sender] = 0;
+        stakeLock[msg.sender] = 0;
+        totalStaking -= _amount;
+
+        tokenRewards.transferFrom(address(this), msg.sender, _amount * 1e18);
+    }
+
+    function changeDuration(uint32 _duration) external onlyOwner {
         duration = _duration;
     }
 
