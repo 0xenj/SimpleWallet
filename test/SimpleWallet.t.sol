@@ -30,4 +30,18 @@ contract SimpleWalletTest is Test {
         assertEq(tokenRewards.balanceOf(address(simplewallet)), totalSupplytokenRewards);
         assertEq(simplewallet.getDuration(), 1 days);
     }
+
+    function test_deposit_withdraw() public {
+        address user1 = vm.addr(2);
+        vm.startPrank(user1);
+        token.mint(user1, 11 * 1e18);
+        token.allowance(user1, address(simplewallet));
+        token.approve(address(simplewallet), 10 * 1e18);
+
+        simplewallet.deposit(10 * 1e18);
+        assertEq(simplewallet.getBalance(), 10 * 1e18);
+        assertEq(simplewallet.getBalance(), simplewallet.getTotalWalletsFunds());
+        assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
+        assertGe(token.balanceOf(user1), 1);
+    }
 }
