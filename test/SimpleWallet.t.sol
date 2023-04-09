@@ -1,24 +1,33 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/SimpleWallet.sol";
+import "./MockERC20.sol";
 
 contract SimpleWalletTest is Test {
     SimpleWallet public simplewallet;
+    MockERC20 public token;
+    MockERC20 public tokenRewards;
+    address owner;
+    uint256 totalSupplytokenRewards;
 
-    // function setUp() public {
-    //     counter = new Counter();
-    //     counter.setNumber(0);
-    // }
+    function setUp() public {
+        owner = vm.addr(1);
+        token = new MockERC20();
+        tokenRewards = new MockERC20();
 
-    // function testIncrement() public {
-    //     counter.increment();
-    //     assertEq(counter.number(), 1);
-    // }
+        vm.prank(owner);
+        simplewallet = new SimpleWallet(address(token), address(tokenRewards), 1 days);
 
-    // function testSetNumber(uint256 x) public {
-    //     counter.setNumber(x);
-    //     assertEq(counter.number(), x);
-    // }
+        totalSupplytokenRewards = 1000000 * 1e18;
+        tokenRewards.mint(address(simplewallet), totalSupplytokenRewards);
+    }
+
+    function test_setup() public {
+        assertEq(simplewallet.isOwner(), owner);
+        assertEq(token.balanceOf(address(simplewallet)), 0);
+        assertEq(tokenRewards.balanceOf(address(simplewallet)), totalSupplytokenRewards);
+        assertEq(simplewallet.getDuration(), 1 days);
+    }
 }

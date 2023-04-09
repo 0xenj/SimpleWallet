@@ -103,4 +103,16 @@ contract SimpleWallet {
     function getTotalWalletsFunds() public view returns (uint256) {
         return totalWalletsFunds;
     }
+
+    function getToken() public view returns (address) {
+        return address(token);
+    }
+
+    function getTokenRewards() public view returns (address) {
+        return address(tokenRewards);
+    }
+
+    function isOwner() public view returns (address) {
+        return owner;
+    }
 }
