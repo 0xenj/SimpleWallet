@@ -52,7 +52,7 @@ contract SimpleWallet {
         balances[msg.sender] -= _amount;
         totalWalletsFunds -= _amount;
 
-        token.transferFrom(address(this), msg.sender, _amount);
+        token.transfer(msg.sender, _amount);
     }
 
     function stacking(uint256 _amount) external {
