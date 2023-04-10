@@ -67,8 +67,27 @@ contract SimpleWalletTest is Test {
         assertGe(token.balanceOf(user1), 0);
 
         vm.expectRevert();
-        simplewallet.stacking(11 * 1e18);
+        simplewallet.staking(11 * 1e18);
         simplewallet.staking(10 * 1e18);
+        assertEq(simplewallet.getBalance(), 0);
+        assertEq(simplewallet.getTotalWalletsFunds(), 10 * 1e18);
+        assertEq(simplewallet.getStaking(), simplewallet.getTotalWalletsFunds());
+        assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
+        assertEq(simplewallet.getTotalStaking(), 10 * 1e18);
+
+        vm.warp(block.timestamp + 100);
+        vm.expectRevert();
+        simplewallet.claimRewards();
         
+        vm.warp(block.timestamp + 10000);
+        vm.expectRevert();
+        simplewallet.claimRewards();
+
+        vm.warp(block.timestamp + 1 days);
+        simplewallet.claimRewards();
+        assertEq(simplewallet.getBalance(), 10 * 1e18);
+        assertEq(simplewallet.getStaking(), 0);
+        assertEq(simplewallet.getTotalStaking(), 0);
+        assertEq(tokenRewards.balanceOf(user1), 10 * 1e18);
     }
 }

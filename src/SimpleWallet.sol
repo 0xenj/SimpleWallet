@@ -55,7 +55,7 @@ contract SimpleWallet {
         token.transfer(msg.sender, _amount);
     }
 
-    function stacking(uint256 _amount) external {
+    function staking(uint256 _amount) external {
         require(stakeLock[msg.sender] < block.timestamp, 'Already staking in progress');
         require(_amount > 0, 'amount = 0');
         require(balances[msg.sender] >= _amount, 'Not enough funds on wallet');
@@ -68,7 +68,6 @@ contract SimpleWallet {
 
     function claimRewards() external {
         require(stakeLock[msg.sender] < block.timestamp, 'Funds are lock');
-        require(msg.sender != address(0), 'Address 0');
 
         uint256 _amount = stake[msg.sender];
 
@@ -77,7 +76,7 @@ contract SimpleWallet {
         stakeLock[msg.sender] = 0;
         totalStaking -= _amount;
 
-        tokenRewards.transferFrom(address(this), msg.sender, _amount * 1e18);
+        tokenRewards.transfer(msg.sender, _amount);
     }
 
     function changeDuration(uint32 _duration) external onlyOwner {
