@@ -114,4 +114,8 @@ contract SimpleWallet {
     function isOwner() public view returns (address) {
         return owner;
     }
+
+    function isClaiming() public view returns (bool) {
+        return stakeLock[msg.sender] < block.timestamp ? true : false;
+    }
 }

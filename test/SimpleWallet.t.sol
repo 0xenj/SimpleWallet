@@ -43,7 +43,7 @@ contract SimpleWalletTest is Test {
         assertEq(simplewallet.getBalance(), 10 * 1e18);
         assertEq(simplewallet.getBalance(), simplewallet.getTotalWalletsFunds());
         assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
-        assertGe(token.balanceOf(user1), 0);
+        assertEq(token.balanceOf(user1), 0);
 
         simplewallet.withdraw(10 * 1e18);
         assertEq(simplewallet.getBalance(), 0);
@@ -64,7 +64,7 @@ contract SimpleWalletTest is Test {
         assertEq(simplewallet.getBalance(), 10 * 1e18);
         assertEq(simplewallet.getBalance(), simplewallet.getTotalWalletsFunds());
         assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
-        assertGe(token.balanceOf(user1), 0);
+        assertEq(token.balanceOf(user1), 0);
 
         vm.expectRevert();
         simplewallet.staking(11 * 1e18);
@@ -78,16 +78,79 @@ contract SimpleWalletTest is Test {
         vm.warp(block.timestamp + 100);
         vm.expectRevert();
         simplewallet.claimRewards();
+        assertTrue(!simplewallet.isClaiming());
         
         vm.warp(block.timestamp + 10000);
         vm.expectRevert();
         simplewallet.claimRewards();
+        assertTrue(!simplewallet.isClaiming());
 
         vm.warp(block.timestamp + 1 days);
         simplewallet.claimRewards();
+        assertTrue(simplewallet.isClaiming());
         assertEq(simplewallet.getBalance(), 10 * 1e18);
         assertEq(simplewallet.getStaking(), 0);
         assertEq(simplewallet.getTotalStaking(), 0);
         assertEq(tokenRewards.balanceOf(user1), 10 * 1e18);
+    }
+
+    function test_changeDuration() public {
+        address user1 = vm.addr(2);
+
+        assertEq(simplewallet.getDuration(), 1 days);
+
+        vm.prank(user1);
+        vm.expectRevert();
+        simplewallet.changeDuration(2 days);
+
+        vm.prank(owner);
+        simplewallet.changeDuration(3 days);
+        assertEq(simplewallet.getDuration(), 3 days);
+    }
+
+    function test_publicView() public {
+        address user1 = vm.addr(2);
+
+        assertEq(simplewallet.getToken(), address(token));
+        assertEq(simplewallet.getTokenRewards(), address(tokenRewards));
+    }
+
+    function test_transaction() public {
+        address user1 = vm.addr(2);
+        address user2 = vm.addr(3);
+
+        vm.startPrank(user1);
+        token.mint(user1, 10 * 1e18);
+        token.approve(address(simplewallet), 10 * 1e18);
+        token.allowance(user1, address(simplewallet));
+
+        simplewallet.deposit(10 * 1e18);
+        assertEq(simplewallet.getBalance(), 10 * 1e18);
+        assertEq(simplewallet.getBalance(), simplewallet.getTotalWalletsFunds());
+        assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
+        assertEq(token.balanceOf(user1), 0);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        token.mint(user2, 10 * 1e18);
+        token.approve(address(simplewallet), 10 * 1e18);
+        token.allowance(user2, address(simplewallet));
+
+        simplewallet.deposit(10 * 1e18);
+        assertEq(simplewallet.getBalance(), 10 * 1e18);
+        assertEq(simplewallet.getTotalWalletsFunds(), 20 * 1e18);
+        assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
+        assertEq(token.balanceOf(user2), 0);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        simplewallet.transaction(user2, 5 * 1e18);
+        assertEq(simplewallet.getBalance(), 5 * 1e18);
+        assertEq(simplewallet.getTotalWalletsFunds(), 20 * 1e18);
+        assertEq(token.balanceOf(address(simplewallet)), simplewallet.getTotalWalletsFunds());
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        assertEq(simplewallet.getBalance(), 15 * 1e18);
     }
 }
