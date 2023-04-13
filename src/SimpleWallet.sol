@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SimpleWallet {
     address payable public owner;
-    IERC20 public immutable token;
     IERC20 public immutable tokenRewards;
     uint256 public totalWalletsFunds;
     uint256 public totalStaking;
