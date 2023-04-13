@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SimpleWallet {
-    address public owner;
+    address payable public owner;
     IERC20 public immutable token;
     IERC20 public immutable tokenRewards;
     uint256 public totalWalletsFunds;
@@ -18,9 +18,8 @@ contract SimpleWallet {
 
     /* Token will be Sepolia ETH
        TokenReward will be a custom token */
-    constructor(address _token, address _tokenRewards, uint32 _duration) {
-        owner = msg.sender;
-        token = IERC20(_token);
+    constructor(address _tokenRewards, uint32 _duration) {
+        owner = payable(msg.sender);
         tokenRewards = IERC20(_tokenRewards);
         duration = _duration;
     }
@@ -30,13 +29,11 @@ contract SimpleWallet {
         _;
     }
 
-    function deposit(uint256 _amount) external {
-        require(_amount > 0, 'Amount must be greater than 0');
+    function deposit() external payable  {
+        require(msg.value > 0, 'Amount must be greater than 0');
 
-        balances[msg.sender] += _amount;
-        totalWalletsFunds += _amount;
-
-        token.transferFrom(msg.sender, address(this), _amount);
+        balances[msg.sender] += msg.value;
+        totalWalletsFunds += msg.value;
     }
 
     function transaction(address _to, uint256 _amount) external {
@@ -52,7 +49,7 @@ contract SimpleWallet {
         balances[msg.sender] -= _amount;
         totalWalletsFunds -= _amount;
 
-        token.transfer(msg.sender, _amount);
+        payable(msg.sender).transfer(_amount);
     }
 
     function staking(uint256 _amount) external {
