@@ -36,30 +36,33 @@ contract SimpleWallet {
     }
 
     function transaction(address _to, uint256 _amount) external {
-        require(balances[msg.sender] >= _amount, 'Not enough funds');
+        uint256 amount = _amount * 1e18;
+        require(balances[msg.sender] >= amount, 'Not enough funds');
         
-        balances[msg.sender] -= _amount;
-        balances[_to] += _amount;
+        balances[msg.sender] -= amount;
+        balances[_to] += amount;
     }
 
     function withdraw(uint256 _amount) external {
-        require(balances[msg.sender] >= _amount, 'Not enough funds in wallet');
+        uint256 amount = _amount * 1e18;
+        require(balances[msg.sender] >= amount, 'Not enough funds in wallet');
 
-        balances[msg.sender] -= _amount;
-        totalWalletsFunds -= _amount;
+        balances[msg.sender] -= amount;
+        totalWalletsFunds -= amount;
 
-        payable(msg.sender).transfer(_amount);
+        payable(msg.sender).transfer(amount);
     }
 
     function staking(uint256 _amount) external {
+        uint256 amount = _amount * 1e18;
         require(stakeLock[msg.sender] < block.timestamp, 'Already staking in progress');
-        require(_amount > 0, 'amount = 0');
-        require(balances[msg.sender] >= _amount, 'Not enough funds on wallet');
+        require(amount > 0, 'amount = 0');
+        require(balances[msg.sender] >= amount, 'Not enough funds on wallet');
 
-        balances[msg.sender] -= _amount;
-        stake[msg.sender] += _amount;
+        balances[msg.sender] -= amount;
+        stake[msg.sender] += amount;
         stakeLock[msg.sender] = uint32(block.timestamp) + duration;
-        totalStaking += _amount;
+        totalStaking += amount;
     }
 
     function claimRewards() external {
@@ -72,12 +75,14 @@ contract SimpleWallet {
         stakeLock[msg.sender] = 0;
         totalStaking -= _amount;
 
-        tokenRewards.transfer(msg.sender, _amount);
+        tokenRewards.transferFrom(owner, msg.sender, _amount);
     }
 
     function changeDuration(uint32 _duration) external onlyOwner {
         duration = _duration;
     }
+
+    receive() external payable {}
 
     function getDuration() public view returns (uint32) {
         return duration;
