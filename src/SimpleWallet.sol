@@ -75,7 +75,7 @@ contract SimpleWallet {
         stakeLock[msg.sender] = 0;
         totalStaking -= _amount;
 
-        tokenRewards.transferFrom(owner, msg.sender, _amount);
+        tokenRewards.transfer(msg.sender, _amount);
     }
 
     function changeDuration(uint32 _duration) external onlyOwner {
