@@ -82,8 +82,6 @@ contract SimpleWallet {
         duration = _duration;
     }
 
-    receive() external payable {}
-
     function getDuration() public view returns (uint32) {
         return duration;
     }
